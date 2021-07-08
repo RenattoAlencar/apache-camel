@@ -1,6 +1,7 @@
 package br.com.caelum.camel;
 
 import org.apache.camel.CamelContext;
+import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.impl.DefaultCamelContext;
 
@@ -13,7 +14,7 @@ public class RotaPedidos {
 		context.addRoutes(new RouteBuilder() {
 			@Override
 			public void configure() throws Exception {
-				from("file:pedidos?delay=5s&noop=true") //Diretoio entrada dos arquivos.
+				from("file:pedidos?delay=5s&noop=true") //Diretoio entrada dos arquivos - delay=5 segundos e não excluir arquivos da pasta raiz.
 
 						.split()
 							.xpath("/pedido/itens/item") // separando os itens dentro do xml
@@ -27,7 +28,7 @@ public class RotaPedidos {
 						.log("${id}")
 						.marshal().xmljson() //converter para xml para json.
 						.log(" -- FORMAT JSON ${body}")
-						.setHeader("CamelFileName", simple("${file:name.noext}.json")) //Saida do arquivo em json, ( noext ) - tira a extenção na entrada do arquivo.
+						.setHeader(Exchange.FILE_NAME, simple("${file:name.noext}-${header.CamelSplitIndex}.json")) //Saida do arquivo em json, ( noext ) - tira a extenção na entrada do arquivo, ${header.nameProjectSplitIndex}, foi para buscar os dois dados de BOOKS dentro do xml.
 						.to("file:saida"); // Diretorio saida dos arquivos.
 			}
 		});
@@ -37,3 +38,5 @@ public class RotaPedidos {
 		context.stop();
 	}	
 }
+
+
